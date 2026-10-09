@@ -1,0 +1,170 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  --color-ink: #050505;
+  --color-border: rgba(255, 255, 255, 0.09);
+  --color-muted: #a89ab8;
+  --color-fg: #f6f3fb;
+
+  --color-pink: #ff5f9e;
+  --color-pink-2: #ff8fb8;
+  --color-violet: #8b5cf6;
+  --color-violet-2: #b794f6;
+  --color-orange: #ff9a52;
+  --color-aurora-blue: #4f8bff;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-ink);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-image: radial-gradient(
+    ellipse 70% 45% at 50% -10%,
+    rgba(139, 92, 246, 0.16),
+    transparent 60%
+  );
+  background-attachment: fixed;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: rgba(255, 95, 158, 0.35);
+}
+
+input,
+select,
+textarea {
+  color-scheme: dark;
+}
+
+.gradient-text {
+  background: linear-gradient(90deg, var(--color-pink), var(--color-violet-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.card {
+  background: #0e0e12;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.glow {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 20px 60px -24px rgba(139, 92, 246, 0.4);
+}
+
+.input {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 2px solid transparent;
+  background-image: linear-gradient(#111116, #111116);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.9rem;
+  color: var(--color-fg);
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--color-muted);
+}
+
+/* iOS Safari zooms the page when focusing any input under 16px. */
+@media (max-width: 639px) {
+  .input {
+    font-size: 16px;
+  }
+}
+
+/* Rainbow framing: an animated multi-color ring that alternates through
+   hues, used to frame focal elements (inputs on focus, buttons on hover,
+   the logo badge). */
+@keyframes rainbow-spin {
+  to {
+    background-position: 400% 0;
+  }
+}
+
+.input:focus {
+  background-image:
+    linear-gradient(#111116, #111116),
+    linear-gradient(90deg, #ff5f9e, #ff9a52, #ffe066, #4ade80, #4f8bff, #8b5cf6, #ff5f9e);
+  background-size:
+    100% 100%,
+    400% 100%;
+  animation: rainbow-spin 8s linear infinite;
+}
+
+.rainbow-frame {
+  position: relative;
+  isolation: isolate;
+}
+
+.rainbow-frame::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    #ff5f9e,
+    #ff9a52,
+    #ffe066,
+    #4ade80,
+    #4f8bff,
+    #8b5cf6,
+    #ff5f9e
+  );
+  background-size: 400% 100%;
+  animation: rainbow-spin 8s linear infinite;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.rainbow-frame:hover::before,
+.rainbow-frame:focus-within::before {
+  opacity: 1;
+}
+
+/* Globe logo: a meridian line pulses from a thin vertical line at the
+   sphere's center out to its full edge width and back, simulating a line
+   of longitude sweeping around as the globe spins. */
+@keyframes globe-meridian {
+  0%,
+  100% {
+    transform: scaleX(0);
+  }
+  50% {
+    transform: scaleX(1);
+  }
+}
+

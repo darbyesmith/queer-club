@@ -1,49 +1,66 @@
-# Secret Queer Club
+# Queer Club
 
-A member-built directory — searchable and filterable by city, country, age, and height. Built with React, Vite, Tailwind CSS, and Supabase.
+A members-only community directory for queer people to find friends, dates, and connections. Members build a profile, browse and filter the directory, and message each other.
 
-## 1. Install dependencies
+**Live:** [queer-club.vercel.app](https://queer-club.vercel.app)
+
+## Features
+
+- **Auth:** email/password and Google sign-in via Supabase Auth.
+- **Profiles:** up to 5 photos plus an optional video (Supabase Storage), demographics, and an interests picker where members can pick existing interests or create new ones.
+- **Directory:** search plus filters for country, city, age, height, relationship status, and interests (multi-select). Cards have swipeable photo carousels.
+- **Visibility rules enforced in the database:** a member's profile is only returned to viewers whose identity matches who the member is interested in, using Postgres row-level security rather than client-side hiding.
+- **Messaging:** direct messages between members, unread indicators, and favorited conversations pinned to the top.
+- **Landing page:** an animated globe with one dot per city that has members, sized by member count. Tapping a dot shows the city and links to the directory filtered to it.
+
+## Tech stack
+
+| Area | Choice |
+| --- | --- |
+| Frontend | React 19, TypeScript, Vite |
+| Styling | Tailwind CSS v4 |
+| Routing | React Router |
+| Backend | Supabase (Postgres, Auth, Storage, row-level security) |
+| Hosting | Vercel |
+| Lint | oxlint |
+
+## Design notes
+
+- **Row-level security does the access control.** The profiles `select` policy checks the viewer's identity against the profile's `interested_in`. To avoid the policy recursively querying the table it protects, the viewer's identity comes from a `security definer` function (`public.my_identity()`). See [`supabase/schema.sql`](supabase/schema.sql).
+- **Photos are kept backward compatible.** `photos` is an array, and `photo_url` is kept in sync with the first entry so older rows and code paths keep working.
+- **Mobile touch behavior is handled explicitly.** The photo carousel uses native scroll-snap, and the interests picker avoids patterns that misbehave on iOS Safari (for example, interactive controls inside a `<label>`).
+- **The globe layout is computed, not hand-placed.** City dots are spread across the header with a low-discrepancy (Halton) sequence while keeping a clear zone around the globe, so any number of cities gets its own dot.
+
+## Running locally
 
 ```bash
 npm install
-```
-
-## 2. Create a Supabase project
-
-1. Go to [supabase.com](https://supabase.com) and create a free project.
-2. In your project, open **SQL Editor > New query**, paste the contents of [`supabase/schema.sql`](supabase/schema.sql), and run it. This creates the `profiles` table, its security policies, and the `avatars` storage bucket.
-3. Go to **Project Settings > API** and copy the **Project URL** and **anon public key**.
-4. Copy `.env.example` to `.env.local` and fill in those two values:
-
-```bash
-cp .env.example .env.local
-```
-
-## 3. Enable Google sign-in (optional but recommended)
-
-1. In Supabase, go to **Authentication > Providers > Google** and enable it.
-2. Create OAuth credentials in the [Google Cloud Console](https://console.cloud.google.com/apis/credentials) (OAuth client ID, type "Web application").
-3. Add the redirect URL Supabase shows you (looks like `https://<project-ref>.supabase.co/auth/v1/callback`) to the Google OAuth client's **Authorized redirect URIs**.
-4. Paste the Google client ID and secret back into the Supabase provider settings.
-
-Email/password sign-up works immediately with no extra setup.
-
-## 4. Run it
-
-```bash
+cp .env.example .env.local   # then fill in your Supabase URL and anon key
 npm run dev
 ```
 
-## Notes on profile photos
+1. Create a project at [supabase.com](https://supabase.com).
+2. In the SQL editor, run [`supabase/schema.sql`](supabase/schema.sql). It creates the tables, security policies, and the `avatars` storage bucket.
+3. Copy the project URL and anon key (Project Settings, API) into `.env.local`.
+4. Optional, for Google sign-in: enable the Google provider under Authentication, create OAuth credentials in Google Cloud, and add Supabase's callback URL as an authorized redirect URI.
 
-Instagram and LinkedIn no longer allow third-party apps to pull a user's profile photo automatically — both platforms locked that down. Instead, the profile page supports:
-
-- **Upload a photo** — stored in Supabase Storage (`avatars` bucket).
-- **Paste a link** — a direct image URL, or a social profile link if you'd rather point people there.
+Other scripts: `npm run build` (type-check and build), `npm run lint`.
 
 ## Project structure
 
-- `src/pages` — Landing, Join (sign up/in), Directory, Profile
-- `src/contexts/AuthContext.tsx` — Supabase auth state and actions
-- `src/lib/supabase.ts` — Supabase client
-- `supabase/schema.sql` — database schema + row-level security policies
+```
+src/
+  pages/        Landing, Join, Directory, MemberProfile, Profile, Messages
+  components/   GlobeHero, Logo, PhotoCarousel, TagSelect, Navbar, ProtectedRoute
+  contexts/     AuthContext (Supabase auth state and actions)
+  lib/          Supabase client, height helpers
+supabase/
+  schema.sql    Tables, row-level security policies, storage bucket
+```
+
+## Known gaps and next steps
+
+- No automated tests yet. Core flows (auth, visibility rules, messaging) were verified manually and with ad-hoc browser tests.
+- The directory loads all visible profiles and filters in the browser. That's fine at this size, but it needs server-side filtering and pagination before the member count grows.
+- Messages refresh on load rather than in real time. Supabase Realtime would be the natural upgrade.
+- No moderation, blocking, or reporting tools yet, which a real community product would need before launch.
